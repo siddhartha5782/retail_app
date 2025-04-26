@@ -1,0 +1,24 @@
+<!-- templates/login.html -->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Retail App Login</title>
+</head>
+<body>
+    <h2>Login</h2>
+    <form action="{{ url_for('submit') }}" method="POST">
+        <label>Username:</label><br>
+        <input type="text" name="username" required><br><br>
+
+        <label>Password:</label><br>
+        <input type="password" name="password" required><br><br>
+
+        <label>Email:</label><br>
+        <input type="email" name="email" required><br><br>
+
+        <button type="submit">Submit</button>
+    </form>
+</body>
+</html>
