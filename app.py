@@ -373,23 +373,25 @@ def dashboard():
     GROUP BY income_range
     """
     demo_df = pd.read_sql(demo_query, conn)
-
-    fig1 = go.Figure([go.Bar(x=demo_df['income_range'], y=demo_df['avg_spend'])])
-    fig1.update_layout(title='Income Range vs Average Spend')
+    demo_data = {
+        'labels': demo_df['income_range'].fillna('Unknown').tolist(),
+        'values': demo_df['avg_spend'].tolist()
+    }
 
     # 2. Engagement Over Time
     engagement_query = f"""
-        SELECT t.year, AVG(t.spend) AS avg_spend
-        FROM transactions t
-        JOIN households h ON t.hshd_num = h.hshd_num
-        WHERE 1=1 {income_filter}
-        GROUP BY t.year
-        ORDER BY t.year
-        """
+    SELECT t.year, AVG(t.spend) AS avg_spend
+    FROM transactions t
+    JOIN households h ON t.hshd_num = h.hshd_num
+    WHERE 1=1 {income_filter}
+    GROUP BY t.year
+    ORDER BY t.year
+    """
     engagement_df = pd.read_sql(engagement_query, conn)
-
-    fig2 = go.Figure([go.Scatter(x=engagement_df['year'], y=engagement_df['avg_spend'], mode='lines+markers')])
-    fig2.update_layout(title='Average Spend Over Years')
+    engagement_data = {
+        'labels': engagement_df['year'].tolist(),
+        'values': engagement_df['avg_spend'].tolist()
+    }
 
     # 3. Basket Analysis
     basket_query = f"""
@@ -401,11 +403,11 @@ def dashboard():
     OFFSET 0 ROWS FETCH NEXT 10 ROWS ONLY
     """
     basket_df = pd.read_sql(basket_query, conn)
-    print(basket_df)
-    fig3 = go.Figure([go.Bar(x=basket_df['product_num'].astype(str), y=basket_df['count'])])
-    print("test1",fig3)
-    fig3.update_layout(title='Top Products in Baskets')
-    print("test2",fig3)
+    basket_data = {
+        'labels': basket_df['product_num'].astype(str).tolist(),
+        'values': basket_df['count'].tolist()
+    }
+
     # 4. Seasonal Trends
     seasonal_query = f"""
     SELECT week_num, SUM(spend) AS total_spend
@@ -415,12 +417,10 @@ def dashboard():
     ORDER BY week_num
     """
     seasonal_df = pd.read_sql(seasonal_query, conn)
-
-    fig4 = go.Figure([go.Scatter(x=seasonal_df['week_num'], y=seasonal_df['total_spend'], mode='lines+markers')])
-    fig4.update_layout(title='Seasonal Trends (Spend by Week)',
-                       xaxis_title='Product Number',
-                       yaxis_title='Number of Baskets',
-                       xaxis_type='category')
+    seasonal_data = {
+        'labels': seasonal_df['week_num'].tolist(),
+        'values': seasonal_df['total_spend'].tolist()
+    }
 
     # 5. Brand Preferences
     brand_query = f"""
@@ -431,24 +431,25 @@ def dashboard():
     GROUP BY brand_type
     """
     brand_df = pd.read_sql(brand_query, conn)
-    fig5 = go.Figure([go.Bar(x=brand_df['brand_type'], y=brand_df['cnt'])])
-    fig5.update_layout(title='Brand Preferences')
+    brand_data = {
+        'labels': brand_df['brand_type'].fillna('Unknown').tolist(),
+        'values': brand_df['cnt'].tolist()
+    }
 
     conn.close()
 
-    graphs = {
-    'fig1': fig1,
-    'fig2': fig2,
-    'fig3': fig3,
-    'fig4': fig4,
-    'fig5': fig5
-    }
-
-    return render_template('dashboard.html', graphs=json.dumps(graphs, cls=plotly.utils.PlotlyJSONEncoder),
+    # Send ALL data to HTML for Chart.js
+    return render_template('dashboard.html',
+                           demo_data=demo_data,
+                           engagement_data=engagement_data,
+                           basket_data=basket_data,
+                           seasonal_data=seasonal_data,
+                           brand_data=brand_data,
                            years=years,
                            incomes=incomes,
                            selected_year=selected_year,
                            selected_income=selected_income)
+
 
 
 
