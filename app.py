@@ -1,25 +1,45 @@
-# app.py
-
-from flask import Flask, render_template, request, redirect, url_for
+from flask import Flask, render_template, request
+import pyodbc
+import pandas as pd
 
 app = Flask(__name__)
 
-# Home route
+# Database connection settings
+server = '<retail-bd.database.windows.net'
+database = 'retail_db'
+username = 'jagan'
+password = 'retaildb1!'
+driver = '{ODBC Driver 17 for SQL Server}'
+
+def get_db_connection():
+    conn = pyodbc.connect(
+        f'DRIVER={driver};SERVER={server};DATABASE={database};UID={username};PWD={password};Encrypt=yes;TrustServerCertificate=no'
+    )
+    return conn
+
 @app.route('/')
 def home():
-    return render_template('login.html')
+    return render_template('home.html')
 
-# Form submission route
-@app.route('/submit', methods=['POST'])
-def submit():
-    username = request.form['username']
-    password = request.form['password']
-    email = request.form['email']
-
-    # Here you can save it to your database (future steps)
-    print(f"Received: Username={username}, Password={password}, Email={email}")
+# Sample Data Pull for HSHD_NUM = 10
+@app.route('/sample')
+def sample_data():
+    conn = get_db_connection()
     
-    return redirect(url_for('home'))
+    query = """
+    SELECT 
+        t.hshd_num, t.basket_num, t.purchase_ as date, 
+        t.product_num, p.department, p.commodity
+    FROM transactions t
+    JOIN products p ON t.product_num = p.product_num
+    WHERE t.hshd_num = 10
+    ORDER BY t.hshd_num, t.basket_num, t.purchase_, t.product_num
+    """
+    
+    df = pd.read_sql(query, conn)
+    conn.close()
+    
+    return render_template('result.html', tables=[df.to_html(classes='data')], titles=df.columns.values)
 
-if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=5000)
+if __name__ == '__main__':
+    app.run(debug=True)
