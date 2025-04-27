@@ -2,10 +2,8 @@ from flask import Flask, render_template, request, redirect, flash, session
 import pyodbc
 import pandas as pd
 import os
-import plotly.graph_objs as go
-import plotly
-import json
 import joblib
+import numpy as np
 from sklearn.preprocessing import LabelEncoder
 users = {}  # username -> {password, email}
 
@@ -460,7 +458,29 @@ model_churn = joblib.load("model/logistic_regression_churn.pkl")
 encoder = LabelEncoder()
 store_regions = ['CENTRAL', 'EAST', 'SOUTH', 'WEST']
 encoder.fit(store_regions)
-
+def map_size(size):
+    if size>5:
+        return 5
+    else:
+        return size
+def map_children(children):
+    if children>3:
+        return 3
+    else:
+        return children
+def map_income(income):
+    if income<35000:
+        return 1
+    elif income<49000:
+        return 2
+    elif income<74000:
+        return 3
+    elif income<99000:
+        return 4
+    elif income<150000:
+        return 5
+    else:
+        return 6
 @app.route('/clv_predict', methods=['GET', 'POST'])
 def clv_predict():
     result = None
@@ -470,13 +490,15 @@ def clv_predict():
         income_range = int(request.form['Income_range'])
         hshd_size = int(request.form['Hshd_size'])
         children = int(request.form['Children'])
-
+        mapped_size = map_size(hshd_size)
+        mapped_children = map_children(children)
+        mapped_income_range = map_income(income_range)
         df = pd.DataFrame({
-            'Spend': [spend],
-            'Units': [units],
-            'Hshd_size': [hshd_size],
-            'Children': [children],
-            'Income_range': [income_range]
+            'SPEND': [spend],
+            'UNITS': [units],
+            'size_Mapped': [mapped_size],
+            'children_Mapped': [mapped_children],
+            'Income_Mapped': [mapped_income_range]
         })
 
         prediction = model_clv.predict(df)
@@ -484,32 +506,45 @@ def clv_predict():
 
     return render_template('clv_predict.html', result=result)
 
+basket_model = joblib.load('model/basket_linear_model.pkl')
+
+# You might also need feature columns saved separately during training
+# Let's assume we saved it earlier and now we load it
+feature_columns = joblib.load('model/basket_feature_columns.pkl')  # Save this during training too
 
 @app.route('/basket_predict', methods=['GET', 'POST'])
 def basket_predict():
-    result = None
+    prediction_result = None
+
     if request.method == 'POST':
-        spend = float(request.form['Spend'])
-        units = int(request.form['Units'])
-        income_range = int(request.form['Income_range'])
-        hshd_size = int(request.form['Hshd_size'])
-        children = int(request.form['Children'])
-        store_region = request.form['Store_region']
+        try:
+            form_data = request.form.to_dict()
+            print("Received form data:", form_data)
 
-        df = pd.DataFrame({
-            'Spend': [spend],
-            'Units': [units],
-            'Hshd_size': [hshd_size],
-            'Children': [children],
-            'Income_range': [income_range],
-            'Store_region_encoded': encoder.transform([store_region])
-        })
+            # Convert form inputs into feature vector
+            input_vector = np.zeros(len(feature_columns))
 
-        prediction = model_basket.predict(df)
-        result = prediction[0]
+            # Set 1 for selected products
+            selected_products = request.form.getlist('products')
+            print(selected_products)
 
-    return render_template('basket_predict.html', result=result)
+            for product_id in selected_products:
+                if int(product_id) in feature_columns:
+                    index = feature_columns.index(int(product_id))
+                    input_vector[index] = 1
 
+            input_vector = input_vector.reshape(1, -1)
+
+            prediction = basket_model.predict(input_vector)[0]
+            prediction_result = round(prediction, 2)
+
+        except Exception as e:
+            flash(f"Prediction failed: {str(e)}", 'danger')
+
+    # Send full list
+    product_choices = feature_columns  
+
+    return render_template('basket_predict.html', products=product_choices, result=prediction_result)
 
 @app.route('/churn_predict', methods=['GET', 'POST'])
 def churn_predict():
