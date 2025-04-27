@@ -2,8 +2,6 @@ from flask import Flask, render_template, request, redirect, flash, session
 import pyodbc
 import pandas as pd
 import os
-import matplotlib
-matplotlib.use('Agg')
 import plotly.graph_objs as go
 import plotly
 import json
