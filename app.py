@@ -8,7 +8,7 @@ app = Flask(__name__)
 server = 'retail-bd.database.windows.net'
 database = 'retail_db'
 username = 'jagan'
-password = 'retaildb1!'
+password = 'retailbd1!'
 driver = '{ODBC Driver 17 for SQL Server}'
 
 def get_db_connection():
@@ -28,12 +28,11 @@ def sample_data():
     
     query = """
     SELECT 
-        t.hshd_num, t.basket_num, t.purchase_ as date, 
-        t.product_num, p.department, p.commodity
+        t.hshd_num, t.basket_num, t.product_num, p.department, p.commodity
     FROM transactions t
     JOIN products p ON t.product_num = p.product_num
     WHERE t.hshd_num = 10
-    ORDER BY t.hshd_num, t.basket_num, t.purchase_, t.product_num
+    ORDER BY t.hshd_num
     """
     
     df = pd.read_sql(query, conn)
