@@ -16,34 +16,7 @@
             <h1 class="fw-bold" style="color: #000000;">Retail Analysis Dashboard</h1>
         </div>
 
-        <form method="GET" action="/dashboard" class="p-3">
-            <div class="row g-3 align-items-center">
-                <div class="col-md-5">
-                    <label for="year" class="form-label text-dark">Select Year:</label>
-                    <select name="year" id="year" class="form-select">
-                        <option value="">All Years</option>
-                        {% for y in years %}
-                            <option value="{{ y }}" {% if selected_year == y|string %} selected {% endif %}>{{ y }}</option>
-                        {% endfor %}
-                    </select>
-                </div>
-
-                <div class="col-md-5">
-                    <label for="income" class="form-label text-dark">Select Income Range:</label>
-                    <select name="income" id="income" class="form-select">
-                        <option value="">All Incomes</option>
-                        {% for inc in incomes %}
-                            <option value="{{ inc }}" {% if selected_income == inc %} selected {% endif %}>{{ inc }}</option>
-                        {% endfor %}
-                    </select>
-                </div>
-
-                <div class="col-md-2 d-grid">
-                    <label class="form-label" style="visibility: hidden;">Button</label>
-                    <button type="submit" class="btn btn-outline-primary">Apply Filters</button>
-                </div>
-            </div>
-        </form>
+        
 
         <div class="my-5">
             <h3 class="text-center text-dark">Demographics and Engagement</h3>

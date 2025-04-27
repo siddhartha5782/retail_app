@@ -102,6 +102,7 @@ def sample_data():
 # Interactive search page
 @app.route('/search', methods=['GET', 'POST'])
 def search():
+    
     if request.method == 'POST':
         
         hshd_num = request.form.get('hshd_num')
@@ -345,8 +346,6 @@ def load_csv():
     return render_template('load_csv.html')
 
 
-
-
 @app.route('/dashboard', methods=['GET', 'POST'])
 def dashboard():
     conn = get_db_connection()
@@ -367,7 +366,6 @@ def dashboard():
     SELECT income_range, AVG(spend) AS avg_spend
     FROM transactions t
     JOIN households h ON t.hshd_num = h.hshd_num
-    WHERE 1=1 {year_filter}
     GROUP BY income_range
     """
     demo_df = pd.read_sql(demo_query, conn)
@@ -380,12 +378,11 @@ def dashboard():
     engagement_query = f"""
     SELECT t.year, AVG(t.spend) AS avg_spend
     FROM transactions t
-    JOIN households h ON t.hshd_num = h.hshd_num
-    WHERE 1=1 {income_filter}
     GROUP BY t.year
     ORDER BY t.year
     """
     engagement_df = pd.read_sql(engagement_query, conn)
+    
     engagement_data = {
         'labels': engagement_df['year'].tolist(),
         'values': engagement_df['avg_spend'].tolist()
@@ -395,7 +392,6 @@ def dashboard():
     basket_query = f"""
     SELECT product_num, COUNT(basket_num) AS count
     FROM transactions t
-    WHERE 1=1 {year_filter}
     GROUP BY product_num
     ORDER BY count DESC
     OFFSET 0 ROWS FETCH NEXT 10 ROWS ONLY
@@ -410,7 +406,6 @@ def dashboard():
     seasonal_query = f"""
     SELECT week_num, SUM(spend) AS total_spend
     FROM transactions t
-    WHERE 1=1 {year_filter}
     GROUP BY week_num
     ORDER BY week_num
     """
@@ -425,7 +420,6 @@ def dashboard():
     SELECT brand_type, COUNT(*) AS cnt
     FROM transactions t
     JOIN products p ON t.product_num = p.product_num
-    WHERE 1=1 {year_filter}
     GROUP BY brand_type
     """
     brand_df = pd.read_sql(brand_query, conn)
@@ -452,7 +446,6 @@ def dashboard():
 
 
 model_clv = joblib.load("model/gradient_boosting_clv.pkl")
-model_basket = joblib.load("model/random_forest_basket.pkl")
 model_churn = joblib.load("model/logistic_regression_churn.pkl")
 
 encoder = LabelEncoder()
@@ -512,8 +505,8 @@ basket_model = joblib.load('model/basket_linear_model.pkl')
 # Let's assume we saved it earlier and now we load it
 feature_columns = joblib.load('model/basket_feature_columns.pkl')  # Save this during training too
 
-@app.route('/basket_predict', methods=['GET', 'POST'])
-def basket_predict():
+@app.route('/basket_comp_predict', methods=['GET', 'POST'])
+def basket_comp_predict():
     prediction_result = None
 
     if request.method == 'POST':
@@ -544,7 +537,40 @@ def basket_predict():
     # Send full list
     product_choices = feature_columns  
 
-    return render_template('basket_predict.html', products=product_choices, result=prediction_result)
+    return render_template('basket_comp_predict.html', products=product_choices, result=prediction_result)
+model_basket = joblib.load("model/random_forest_basket.pkl")
+
+@app.route('/basket_predict', methods=['GET', 'POST'])
+def basket_predict():
+    result = None
+    if request.method == 'POST':
+        spend = float(request.form['Spend'])
+        units = int(request.form['Units'])
+        income_range = int(request.form['Income_range'])
+        hshd_size = int(request.form['Hshd_size'])
+        children = int(request.form['Children'])
+        store_region = request.form['Store_region']
+        mapped_size = map_size(hshd_size)
+        mapped_children = map_children(children)
+        mapped_income_range = map_income(income_range)
+        df = pd.DataFrame({
+            'SPEND': [spend],
+            'UNITS': [units],
+            'size_Mapped': [mapped_size],
+            'children_Mapped': [mapped_children],
+            'Income_Mapped': [mapped_income_range],
+            'STORE_REGION_ENCODED': encoder.transform([store_region])
+        })
+
+        
+        prediction = model_basket.predict(df)
+        print(prediction)
+        result = prediction[0]
+        
+        
+    return render_template('basket_predict.html', result=result)  # Render a form if GET request
+
+
 
 @app.route('/churn_predict', methods=['GET', 'POST'])
 def churn_predict():
@@ -555,13 +581,15 @@ def churn_predict():
         income_range = int(request.form['Income_range'])
         hshd_size = int(request.form['Hshd_size'])
         children = int(request.form['Children'])
-
+        mapped_size = map_size(hshd_size)
+        mapped_children = map_children(children)
+        mapped_income_range = map_income(income_range)
         df = pd.DataFrame({
-            'Spend': [spend],
-            'Units': [units],
-            'Hshd_size': [hshd_size],
-            'Children': [children],
-            'Income_range': [income_range]
+            'SPEND': [spend],
+            'UNITS': [units],
+            'size_Mapped': [mapped_size],
+            'children_Mapped': [mapped_children],
+            'Income_Mapped': [mapped_income_range]
         })
 
         prediction = model_churn.predict(df)
