@@ -162,7 +162,31 @@ def insert_transaction():
         flash('Transaction inserted successfully!')
         return redirect('/insert_transaction')  # Go back to Home after inserting
     return render_template('insert_transaction.html')
-
+def reverse_map_income(income):
+    if income<35000:
+        return 'UNDER 35K'
+    elif income<49000:
+        return '35-49K'
+    elif income<74000:
+        return '50-74K'
+    elif income<99000:
+        return '75-99K'
+    elif income<150000:
+        return '100-150K'
+    else:
+        return '150K+'
+    
+def reverse_map_size(size):
+    if size>=5:
+        return '5+'
+    else:
+        return str(size)
+    
+def reverse_map_children(children):
+    if children>=3:
+        return '3+'
+    else:
+        return str(children)
 @app.route('/insert_household', methods=['GET', 'POST'])
 def insert_household():
     if request.method == 'POST':
@@ -175,7 +199,9 @@ def insert_household():
         hshd_composition = request.form['hshd_composition']
         hshd_size = request.form['hshd_size']
         children = request.form['children']
-
+        mapped_income = reverse_map_income(income_range)
+        mapped_size = reverse_map_size(hshd_size)
+        mapped_children = reverse_map_children(children)
         conn = get_db_connection()
         cursor = conn.cursor()
 
@@ -183,7 +209,7 @@ def insert_household():
             INSERT INTO dbo.households (hshd_num, loyalty_flag, age_range, marital_status, income_range, homeowner_desc, hshd_composition, hshd_size, children)
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
         """,
-        hshd_num, loyalty_flag, age_range, marital_status, income_range, homeowner_desc, hshd_composition, hshd_size, children)
+        hshd_num, loyalty_flag, age_range, marital_status, mapped_income, homeowner_desc, hshd_composition, mapped_size, mapped_children)
 
         conn.commit()
         cursor.close()
