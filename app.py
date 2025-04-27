@@ -160,8 +160,8 @@ def insert_transaction():
         conn.commit()
         cursor.close()
         conn.close()
-        flash('✅ Transaction inserted successfully!')
-        return redirect('/')  # Go back to Home after inserting
+        flash('Transaction inserted successfully!')
+        return redirect('/insert_transaction')  # Go back to Home after inserting
     return render_template('insert_transaction.html')
 
 @app.route('/insert_household', methods=['GET', 'POST'])
@@ -189,8 +189,8 @@ def insert_household():
         conn.commit()
         cursor.close()
         conn.close()
-        flash('✅ Transaction inserted successfully!')
-        return redirect('/upload_options')  # After inserting, go back to upload options
+        flash('Household inserted successfully!')
+        return redirect('/insert_household')  # After inserting, go back to upload options
     return render_template('insert_household.html')
 
 @app.route('/insert_product', methods=['GET', 'POST'])
@@ -214,8 +214,8 @@ def insert_product():
         conn.commit()
         cursor.close()
         conn.close()
-        flash('✅ Transaction inserted successfully!')
-        return redirect('/upload_options')  # After inserting, go back to upload options
+        flash('Products inserted successfully!')
+        return redirect('/insert_product')  # After inserting, go back to upload options
     return render_template('insert_product.html')
 
 @app.route('/load_csv', methods=['GET', 'POST'])
@@ -224,7 +224,7 @@ def load_csv():
         files = request.files.getlist('csv_files')
 
         if not files or files == []:
-            flash('❌ No files uploaded.')
+            flash('No files uploaded.')
             return redirect('/load_csv')
 
         if not os.path.exists(app.config['UPLOAD_FOLDER']):
@@ -276,7 +276,7 @@ def load_csv():
                         row['CHILDREN']
                         )
 
-                    flash(f"✅ Households data from {filename} loaded successfully!")
+                    flash(f"Households data from {filename} loaded successfully!")
 
                 elif set(['PRODUCT_NUM', 'DEPARTMENT', 'COMMODITY', 'BRAND_TY', 'NATURAL_ORGANIC_FLAG']).issubset(set(df.columns)):
                     table = 'products'
@@ -301,7 +301,7 @@ def load_csv():
                         row['NATURAL_ORGANIC_FLAG']
                         )
 
-                    flash(f"✅ Products data from {filename} loaded successfully!")
+                    flash(f"Products data from {filename} loaded successfully!")
 
                 elif set(['HSHD_NUM', 'BASKET_NUM', 'PURCHASE_', 'PRODUCT_NUM', 'SPEND', 'UNITS', 'STORE_R', 'WEEK_NUM', 'YEAR']).issubset(set(df.columns)):
                     table = 'transactions'
@@ -329,20 +329,20 @@ def load_csv():
                         row['YEAR']
                         )
 
-                    flash(f"✅ Transactions data from {filename} loaded successfully!")
+                    flash(f"Transactions data from {filename} loaded successfully!")
 
                 else:
-                    flash(f"❌ File {filename} does not match any table schema. Skipped.")
+                    flash(f"File {filename} does not match any table schema. Skipped.")
 
             except Exception as e:
-                flash(f"❌ Error loading {filename}: {str(e)}")
+                flash(f"Error loading {filename}: {str(e)}")
                 continue
 
         conn.commit()
         cursor.close()
         conn.close()
 
-        return redirect('/upload_options')
+        return redirect('/load_csv')
 
     return render_template('load_csv.html')
 

@@ -1,0 +1,52 @@
+/* static/styles/style.css */
+
+body {
+    background: url('/static/background.jpg') no-repeat center center fixed;
+    background-size: cover;
+    background-color: #000000;
+    color: #ffffff;
+    font-family: 'Segoe UI', 'Roboto', 'Helvetica Neue', sans-serif;
+}
+
+.dashboard-card {
+    background: rgba(255, 255, 255, 1); /* Full white card */
+    padding: 2rem;
+    border-radius: 12px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.8);
+    border: 1px solid #2c2c2c;
+}
+
+.btn-primary {
+    background-color: #041e42;
+    border-color: #041e42;
+    color: #ffffff;
+}
+
+.btn-outline-primary {
+    background: transparent;
+    color: #041e42;
+    border-color: #041e42;
+}
+
+.btn-outline-primary:hover {
+    background-color: #041e42;
+    color: #ffffff;
+}
+
+.btn-danger {
+    background-color: #7b1113;
+    border-color: #7b1113;
+    color: #ffffff;
+}
+
+.btn-danger:hover {
+    background-color: #5c0000;
+    border-color: #5c0000;
+    color: #ffffff;
+}
+
+.alert {
+    background-color: rgba(29, 29, 29, 0.9);
+    border: 1px solid #333;
+    color: #ffffff;
+}
