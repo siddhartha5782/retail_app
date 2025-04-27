@@ -1,21 +1,22 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-    <title>Login</title>
+    <title>Load Multiple CSVs</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
 </head>
 <body class="bg-light">
+
     <div class="container mt-5">
         <div class="row justify-content-center">
-            <div class="col-md-5">
+            <div class="col-md-6">
                 <div class="card shadow">
                     <div class="card-body">
-                        <h2 class="text-center mb-4">Login</h2>
+                        <h2 class="text-center mb-4">Load Multiple CSV Files into Tables</h2>
 
                         {% with messages = get_flashed_messages(with_categories=true) %}
                           {% if messages %}
                             {% for category, message in messages %}
-                              <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                              <div class="alert alert-danger alert-dismissible fade show" role="alert">
                                   {{ message }}
                                   <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                               </div>
@@ -23,23 +24,19 @@
                           {% endif %}
                         {% endwith %}
 
-                        <form action="/login" method="post">
+                        <form method="POST" enctype="multipart/form-data">
                             <div class="mb-3">
-                                <label class="form-label">Username</label>
-                                <input type="text" class="form-control" name="username" required>
+                                <label class="form-label">Upload CSV Files:</label>
+                                <input type="file" class="form-control" name="csv_files" multiple required>
                             </div>
 
-                            <div class="mb-3">
-                                <label class="form-label">Password</label>
-                                <input type="password" class="form-control" name="password" required>
-                            </div>
-
-                            <button type="submit" class="btn btn-primary w-100">Login</button>
+                            <button type="submit" class="btn btn-primary w-100">Upload and Insert</button>
                         </form>
 
-                        <p class="text-center mt-3">
-                            Don't have an account? <a href="/register">Register here</a>
-                        </p>
+                        <div class="text-center mt-4">
+                            <a href="/upload_options" class="btn btn-secondary">Back to Upload Options</a>
+                        </div>
+
                     </div>
                 </div>
             </div>
