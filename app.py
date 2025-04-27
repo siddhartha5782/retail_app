@@ -5,7 +5,7 @@ import pandas as pd
 app = Flask(__name__)
 
 # Database connection settings
-server = '<retail-bd.database.windows.net'
+server = 'retail-bd.database.windows.net'
 database = 'retail_db'
 username = 'jagan'
 password = 'retaildb1!'
